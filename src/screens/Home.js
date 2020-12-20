@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Linking, Text, View, StyleSheet, NativeModules } from 'react-native'
+import { Linking, Text, View, StyleSheet, NativeModules, TouchableWithoutFeedback, Alert } from 'react-native'
 import normalize from 'react-native-normalize'
 import Barcode from 'react-native-barcode-builder'
 import colors from '../styles/colors'
@@ -35,14 +35,39 @@ const Home = () => {
     }
   }
 
-  const renderContent = () => {
-    return !url ? (
-      <View style={styles.empty}>
-        <Text>No se ha cargado un ticket de regalo</Text>
-      </View>
-    ) : renderTicket()
+  const printSample = async () => {
+    try {
+      const params = decodeParams()
+      const data = JSON.stringify(params)
+      const result = await NativeModules.PrinterModule.print('arial', data)
+      Alert.alert(getMessage(result))
+    } catch(e) {
+      console.log(e)
+      Alert.alert('Ocurrió un error al imprimir el sticker.')
+    }
   }
 
+  const getMessage = (result) => {
+    switch (result) {
+      case 0:
+        return('Impresión exitosa')
+      case -1:
+        return('No hay papel suficiente para realizar la impresión, inserte mas papel para continuar.')
+      case -2:
+        return('La impresora esta sobrecalentada, porfavor intente despues.')
+      case -3:
+        return('El dispositivo se encuentra con batería baja, cargue el dispositivo para poder imprimir.')
+      case -4:
+        return('El dispositivo se encuentra ocupado en estos momentos, intente en unos minutos.')
+      case -256:
+        return('Ocurrió un error al imprimir el sticker, inténtalo de nuevo')
+      case -257:
+        return('Ocurrió un error con el driver de la impresora del dispositivo.')
+      default:
+        return('Ocurrió un error con el driver de la impresora del dispositivo.')
+    }
+  }
+  
   const decodeParams = () => {
     try {
       const params = url.split('@')
@@ -56,13 +81,24 @@ const Home = () => {
         boleta: params[6],
         barcode: params[7],
         unidades: params[8],
-        skus
+        skus: skus.map(sku => ({
+          sku
+        }))
       }
     } catch (e) {
       console.log(e)
       return null
     }
   }
+
+  const renderContent = () => {
+    return !url ? (
+      <View style={styles.empty}>
+        <Text>No se ha cargado un ticket de regalo</Text>
+      </View>
+    ) : renderTicket()
+  }
+
 
   const renderTicket = () => {
     const data = decodeParams()
@@ -95,7 +131,7 @@ const Home = () => {
             <View style={styles.doublespace}>
               {
                 skus.map(sku => (
-                  <Text>{sku}</Text>
+                  <Text key={sku.sku}>{sku.sku}</Text>
                 ))
               }
             </View>
@@ -110,9 +146,11 @@ const Home = () => {
       <View style={styles.body}>
         {renderContent()}
       </View>
-      <View style={[styles.button, !(hasPrinter && url) ? styles.disabled : null]}>
-        <Text style={styles.buttonText}>IMPRIMIR TICKET</Text>
-      </View>
+      <TouchableWithoutFeedback onPress={() => hasPrinter && url && printSample()}>
+        <View style={[styles.button, !(hasPrinter && url) ? styles.disabled : null]}>
+          <Text style={styles.buttonText}>IMPRIMIR TICKET</Text>
+        </View>
+      </TouchableWithoutFeedback>
     </View>
   )
 
@@ -131,8 +169,10 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.ALT_VIOLETA,
     padding: normalize(12),
-    borderRadius: normalize(10),
-    alignItems: 'center'
+    borderRadius: normalize(12),
+    alignItems: 'center',
+    marginBottom: normalize(10),
+    marginHorizontal: normalize(20)
   },
   disabled: {
     backgroundColor: colors.TEXTOS_TERCIARIO,
