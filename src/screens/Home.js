@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Linking, Text, View, StyleSheet, NativeModules, TouchableWithoutFeedback, Alert } from 'react-native'
+import { Linking, Text, View, StyleSheet, NativeModules, TouchableWithoutFeedback, Alert, BackHandler } from 'react-native'
 import normalize from 'react-native-normalize'
 import Barcode from 'react-native-barcode-builder'
 import colors from '../styles/colors'
@@ -8,7 +8,7 @@ import { ScrollView } from 'react-native-gesture-handler'
 const Home = () => {
 
   const [url, setUrl] = useState(null)
-  const [hasPrinter, setHasPrinter] = useState(true)
+  const [hasPrinter, setHasPrinter] = useState(false)
 
   useEffect(() => {
     checkPrinterAvailable()
@@ -40,7 +40,11 @@ const Home = () => {
       const params = decodeParams()
       const data = JSON.stringify(params)
       const result = await NativeModules.PrinterModule.print('arial', data)
-      Alert.alert(getMessage(result))
+      if(result === 0) {
+        BackHandler.exitApp()
+      } else {
+        Alert.alert(getMessage(result))
+      }
     } catch(e) {
       console.log(e)
       Alert.alert('Ocurrió un error al imprimir el sticker.')
@@ -122,7 +126,7 @@ const Home = () => {
             <Barcode
               value={barcode}
               format="CODE128"
-              width={normalize(4, 'width')}
+              width={normalize(3.5, 'width')}
               height={normalize(90, 'height')}
             />
             <Text style={{ marginTop: -10 }}>{barcode}</Text>

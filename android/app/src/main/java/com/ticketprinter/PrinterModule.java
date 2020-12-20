@@ -67,7 +67,7 @@ public class PrinterModule extends ReactContextBaseJavaModule {
       JSONArray productsArray = item.getJSONArray("skus");
       if (ret == PRNSTS_OK) {
           printerManager.setupPage(384, -1);
-          int fontSize = 28;
+          int fontSize = 26;
           int fontStyle = 0x0000;
           int height = 0;
 
@@ -78,7 +78,7 @@ public class PrinterModule extends ReactContextBaseJavaModule {
           height += printerManager.drawText("COMERCIO/SUCURSAL: "+item.getString("sucursalC"), 0, height, fontName, fontSize, false, false, 0) + 10;
           height += printerManager.drawText(item.getString("sucursalS")+"/"+item.getString("caja")+" "+item.getString("fecha")+" "+item.getString("transaccion"), 0, height, fontName, fontSize, false, false, 0) + 20;
           height += printerManager.drawText("BOLETA REFERENCIA: "+item.getString("boleta"), 0, height, fontName, fontSize, false, false, 0) + 10;
-          printerManager.drawBarcode(item.getString("barcode"), 0, height, 20, 4, 130, 0);
+          printerManager.drawBarcode(item.getString("barcode"), 0, height, 20, 2, 130, 0);
           height += 170;
           height += printerManager.drawText("Ripley", 0, height, fontName, fontSize, false, false, 0) + 10;
           height += printerManager.drawText("NRO. DE UNIDADES: "+item.getString("unidades"), 0, height, fontName, fontSize, false, false, 0) + 20;
